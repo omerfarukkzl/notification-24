@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -37,6 +37,8 @@ import { ToastService } from '../../core/services/toast.service';
   `
 })
 export class LoginComponent {
+  private readonly fb = inject(FormBuilder);
+
   loading = false;
 
   readonly form = this.fb.nonNullable.group({
@@ -45,7 +47,6 @@ export class LoginComponent {
   });
 
   constructor(
-    private readonly fb: FormBuilder,
     private readonly authService: AuthService,
     private readonly toastService: ToastService,
     private readonly router: Router

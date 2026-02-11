@@ -39,7 +39,7 @@ public sealed class AuthController : ControllerBase
             UserName = user.UserName ?? string.Empty,
             FullName = user.FullName,
             Email = user.Email ?? string.Empty,
-            Roles = roles
+            Roles = roles.ToArray()
         });
     }
 }

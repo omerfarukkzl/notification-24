@@ -17,11 +17,16 @@ public sealed class UsersController : ControllerBase
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly IFirebaseAdminService _firebaseAdminService;
+    private readonly ILogger<UsersController> _logger;
 
-    public UsersController(UserManager<AppUser> userManager, IFirebaseAdminService firebaseAdminService)
+    public UsersController(
+        UserManager<AppUser> userManager,
+        IFirebaseAdminService firebaseAdminService,
+        ILogger<UsersController> logger)
     {
         _userManager = userManager;
         _firebaseAdminService = firebaseAdminService;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -103,6 +108,7 @@ public sealed class UsersController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Firebase user create failed for email {Email}", request.Email);
             return BadRequest($"Firebase user could not be created: {ex.Message}");
         }
 
@@ -162,6 +168,7 @@ public sealed class UsersController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Firebase user update failed for local user {UserId}", id);
             return BadRequest($"Firebase user could not be updated: {ex.Message}");
         }
 
@@ -201,6 +208,7 @@ public sealed class UsersController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Firebase user delete failed for local user {UserId}", id);
             return BadRequest($"Firebase user could not be deleted: {ex.Message}");
         }
 

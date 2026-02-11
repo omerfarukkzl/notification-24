@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 import { ToastStackComponent } from './shared/components/toast-stack/toast-stack.component';
 
@@ -41,10 +41,7 @@ import { ToastStackComponent } from './shared/components/toast-stack/toast-stack
 export class AppComponent {
   readonly session = computed(() => this.authService.currentSession());
 
-  constructor(
-    private readonly authService: AuthService,
-    private readonly router: Router
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   async logout(): Promise<void> {
     await this.authService.logout();

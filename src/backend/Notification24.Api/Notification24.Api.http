@@ -1,6 +1,22 @@
-@Notification24.Api_HostAddress = http://localhost:0
+@HostAddress = http://localhost:5050
+@FirebaseToken = REPLACE_WITH_FIREBASE_ID_TOKEN
 
-GET {{Notification24.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Session (requires Firebase token)
+GET {{HostAddress}}/api/auth/me
+Authorization: Bearer {{FirebaseToken}}
 
-###
+### Users list
+GET {{HostAddress}}/api/users
+Authorization: Bearer {{FirebaseToken}}
+
+### Dispatch notification
+POST {{HostAddress}}/api/notifications/dispatch
+Authorization: Bearer {{FirebaseToken}}
+Content-Type: application/json
+
+{
+  "title": "Staj Duyurusu",
+  "body": "Toplantı 14:00'te başlıyor.",
+  "targetMode": "all",
+  "userIds": []
+}

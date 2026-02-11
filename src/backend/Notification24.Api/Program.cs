@@ -1,5 +1,7 @@
 using System.Security.Claims;
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Notification24.Api.Hubs;
@@ -8,6 +10,8 @@ using Notification24.Infrastructure;
 using Notification24.Infrastructure.Configuration;
 using Notification24.Infrastructure.Identity;
 using Notification24.Infrastructure.Persistence;
+
+TryLoadDotEnv();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -95,10 +99,14 @@ builder.Services
                     return;
                 }
 
-                if (!identity.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier))
+                // Firebase tokeninda NameIdentifier gelebilir ama GUID olmayabilir.
+                // Uygulama tarafinda her zaman local user id (GUID) kullanmak icin bu claim'i normalize ediyoruz.
+                var existingNameIdentifierClaims = identity.FindAll(ClaimTypes.NameIdentifier).ToList();
+                foreach (var existingClaim in existingNameIdentifierClaims)
                 {
-                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, localUser.Id.ToString()));
+                    identity.RemoveClaim(existingClaim);
                 }
+                identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, localUser.Id.ToString()));
 
                 if (!identity.HasClaim(claim => claim.Type == ClaimTypes.Name))
                 {
@@ -108,6 +116,11 @@ builder.Services
                 if (!identity.HasClaim(claim => claim.Type == "firebase_uid"))
                 {
                     identity.AddClaim(new Claim("firebase_uid", firebaseUid));
+                }
+
+                if (!identity.HasClaim(claim => claim.Type == "local_user_id"))
+                {
+                    identity.AddClaim(new Claim("local_user_id", localUser.Id.ToString()));
                 }
 
                 var roles = await userManager.GetRolesAsync(localUser);
@@ -140,6 +153,7 @@ if (app.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
     await DatabaseSeeder.SeedAsync(scope.ServiceProvider, app.Configuration);
 }
 
+app.UseHttpsRedirection();
 app.UseCors("frontend");
 app.UseAuthentication();
 app.UseAuthorization();
@@ -155,3 +169,14 @@ app.MapGet("/", () => Results.Ok(new
 }));
 
 app.Run();
+
+static void TryLoadDotEnv()
+{
+    try
+    {
+        Env.TraversePath().Load();
+    }
+    catch (Exception)
+    {
+    }
+}

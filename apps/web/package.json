@@ -3,9 +3,11 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
+    "prestart": "node ./scripts/write-runtime-env.mjs",
     "start": "ng serve --host 0.0.0.0 --port 4200",
+    "prebuild": "node ./scripts/write-runtime-env.mjs",
     "build": "ng build",
-    "lint": "ng lint"
+    "lint": "echo \"ESLint not configured yet\""
   },
   "dependencies": {
     "@angular/animations": "17.3.12",
@@ -28,6 +30,7 @@
     "@angular-devkit/build-angular": "17.3.11",
     "@angular/cli": "17.3.11",
     "@angular/compiler-cli": "17.3.12",
+    "dotenv": "16.4.5",
     "typescript": "5.4.5"
   }
 }

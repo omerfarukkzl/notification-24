@@ -8,6 +8,8 @@
     "packages/*"
   ],
   "scripts": {
+    "dev:up": "bash ./scripts/dev-up.sh",
+    "dev:down": "bash ./scripts/dev-down.sh",
     "web:dev": "pnpm --filter @notification24/web start",
     "web:build": "pnpm --filter @notification24/web build",
     "web:lint": "pnpm --filter @notification24/web lint"

@@ -3,7 +3,10 @@ node_modules
 coverage
 .env
 .env.*
+!.env.example
+!apps/web/.env.example
 .dist
+.local
 .DS_Store
 
 apps/web/dist

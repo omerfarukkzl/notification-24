@@ -43,6 +43,40 @@ public static class DatabaseSeeder
                 throw new InvalidOperationException($"Failed to seed default admin user: {errors}");
             }
         }
+        else
+        {
+            var mustUpdate = false;
+
+            if (!string.Equals(admin.FirebaseUid, adminFirebaseUid, StringComparison.Ordinal))
+            {
+                admin.FirebaseUid = adminFirebaseUid;
+                mustUpdate = true;
+            }
+
+            if (!string.Equals(admin.Email, adminEmail, StringComparison.OrdinalIgnoreCase))
+            {
+                admin.Email = adminEmail;
+                admin.NormalizedEmail = userManager.NormalizeEmail(adminEmail);
+                mustUpdate = true;
+            }
+
+            if (!string.Equals(admin.UserName, adminUserName, StringComparison.Ordinal))
+            {
+                admin.UserName = adminUserName;
+                admin.NormalizedUserName = userManager.NormalizeName(adminUserName);
+                mustUpdate = true;
+            }
+
+            if (mustUpdate)
+            {
+                var updateResult = await userManager.UpdateAsync(admin);
+                if (!updateResult.Succeeded)
+                {
+                    var errors = string.Join(';', updateResult.Errors.Select(error => error.Description));
+                    throw new InvalidOperationException($"Failed to update default admin user: {errors}");
+                }
+            }
+        }
 
         if (!await userManager.IsInRoleAsync(admin, RoleNames.Admin))
         {
