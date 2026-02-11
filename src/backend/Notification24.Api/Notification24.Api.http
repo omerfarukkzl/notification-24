@@ -1,0 +1,6 @@
+@Notification24.Api_HostAddress = http://localhost:0
+
+GET {{Notification24.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

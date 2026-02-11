@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="tr" data-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <title>Notification24 Dashboard</title>
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Kullanıcı yönetimi, anlık bildirim gönderimi ve bildirim takip ekranı sunan Firebase destekli staj projesi.">
+    <link rel="canonical" href="https://notification24.vercel.app/">
+    <meta property="og:title" content="Notification24 Dashboard">
+    <meta property="og:description" content="Firebase auth, SignalR canlı durum ve RabbitMQ kuyruk tabanlı bildirim yönetimi.">
+    <meta property="og:url" content="https://notification24.vercel.app/">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://notification24.vercel.app/og-cover.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Notification24 Dashboard">
+    <meta name="twitter:description" content="Anlık ve gecikmeli bildirim yönetimi için dashboard.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <script>
+      (function () {
+        var stored = localStorage.getItem('theme');
+        var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = stored || (systemDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
+</html>

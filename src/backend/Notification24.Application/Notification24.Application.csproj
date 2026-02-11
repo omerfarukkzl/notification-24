@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Notification24.Domain/Notification24.Domain.csproj" />
+    <ProjectReference Include="../Notification24.Contracts/Notification24.Contracts.csproj" />
+  </ItemGroup>
+</Project>

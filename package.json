@@ -1,0 +1,15 @@
+{
+  "name": "notification-24",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.15.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "web:dev": "pnpm --filter @notification24/web start",
+    "web:build": "pnpm --filter @notification24/web build",
+    "web:lint": "pnpm --filter @notification24/web lint"
+  }
+}
