@@ -5,6 +5,7 @@ coverage
 .env.*
 !.env.example
 !apps/web/.env.example
+!infra/deploy/.env.production.example
 .dist
 .local
 .DS_Store

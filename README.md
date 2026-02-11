@@ -93,4 +93,8 @@ DOTNET_ROLL_FORWARD=Major DOTNET_CLI_HOME=/tmp/dotnet NUGET_PACKAGES=/tmp/nuget 
 - DB: Azure SQL
 - Queue: CloudAMQP
 
+Notlar:
+- Backend target framework: `net10.0`
+- Production appsettings: `src/backend/Notification24.Api/appsettings.Production.json`, `src/backend/Notification24.Worker/appsettings.Production.json`
+
 Detay: `infra/deploy/README.md`.
