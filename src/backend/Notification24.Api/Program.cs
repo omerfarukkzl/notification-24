@@ -22,8 +22,10 @@ builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-    ?? new[] { "http://localhost:4200" };
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()?.ToList() 
+    ?? new List<string> { "http://localhost:4200" };
+
+allowedOrigins.Add("https://notification-24-web.vercel.app");
 
 builder.Services.AddCors(options =>
 {
