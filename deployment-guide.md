@@ -73,21 +73,20 @@ Ekran görüntüsünde GitHub bağlantısı yapılmış görünüyor. Mevcut `.g
 
 Frontend uygulaması için **Vercel** en iyi tercihtir.
 
-### Vercel Yapılandırması
+### 1. Vercel Proje Ayarları (GÜNCEL)
+Vercel'in monorepo yapısını otomatik algılaması bazen hatalı build komutları (`nx build`) üretmesine neden olur. Hataları düzeltmek için Vercel Dashboard'da **Settings > General** kısmında şu ayarları yapın:
 
-Dashboard üzerinden aşağıdaki projeyi ekleyin ve değişkenleri girin:
+- **Framework Preset**: `Angular`
+- **Root Directory**: `apps/web`
+- **Build Command**: `pnpm build`
+- **Output Directory**: `dist/notification24-web/browser`
+- **Install Command**: `pnpm install`
 
-| Key | Açıklama |
-| :--- | :--- |
-| `WEB_API_BASE_URL` | Canlıdaki API domaininiz (örn: `https://api.yourdomain.com`) |
-| `WEB_FIREBASE_API_KEY` | Firebase Config |
-| `WEB_FIREBASE_AUTH_DOMAIN` | Firebase Config |
-| `WEB_FIREBASE_PROJECT_ID` | Firebase Config |
-| `WEB_FIREBASE_APP_ID` | Firebase Config |
+### 2. Ortam Değişkenleri (Vercel)
+**Settings > Environment Variables** kısmında `WEB_` ön eki ile başlayan tüm değişkenleri girdiğinizden emin olun (Firebase Key, API URL vb.).
 
-### Derleme Komutları
-- **Build Command**: `pnpm --filter @notification24/web build`
-- **Output Directory**: `apps/web/.next`
+> [!TIP]
+> Vercel build sırasında "Nx not found" hatası alıyorsanız, yukarıdaki **Build Command** ayarını manuel olarak `pnpm build` (Override seçeneği aktif) şeklinde kaydederek Vercel'in Nx kullanmaya çalışmasını engelleyebilirsiniz.
 
 ---
 
