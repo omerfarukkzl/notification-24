@@ -1,0 +1,12 @@
+.git
+.gitignore
+.github
+.vscode
+.idea
+**/bin
+**/obj
+node_modules
+apps/web
+apps/mobile
+deployment-guide.md
+README.md
