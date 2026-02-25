@@ -93,6 +93,12 @@ button:hover {
   transform: translateY(-1px);
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+  transform: none;
+}
+
 button.accent {
   border-color: var(--accent);
   background: var(--accent);
@@ -198,6 +204,34 @@ label {
   gap: 1rem;
 }
 
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.status-badge[data-state='connected'] {
+  border-color: color-mix(in srgb, var(--success) 45%, var(--border));
+  color: var(--success);
+}
+
+.status-badge[data-state='connecting'],
+.status-badge[data-state='reconnecting'] {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: var(--accent);
+}
+
+.status-badge[data-state='disconnected'] {
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
+  color: var(--danger);
+}
+
 .page-head {
   display: flex;
   justify-content: space-between;
@@ -214,6 +248,40 @@ label {
   gap: 0.55rem;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.selection-bar {
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  background: var(--surface-alt);
+  padding: 0.6rem 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.action-hint {
+  font-size: 0.92rem;
+}
+
+.status-panel,
+.empty-state {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.status-panel.error {
+  border-color: color-mix(in srgb, var(--danger) 32%, var(--border));
+}
+
+.empty-state h3 {
+  font-size: 1.3rem;
 }
 
 .users-grid,
@@ -236,6 +304,17 @@ label {
 .inbox-panel h3 {
   margin-bottom: 0.7rem;
   font-size: 1.3rem;
+}
+
+.status-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.93rem;
+}
+
+.status-inline-error {
+  color: var(--danger);
 }
 
 .inbox-panel ul {
@@ -304,6 +383,28 @@ label {
   gap: 0.75rem;
   padding: 1rem;
   box-shadow: var(--shadow);
+}
+
+.confirm-card {
+  max-width: 520px;
+}
+
+.form-alert {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.92rem;
+}
+
+.form-alert.error {
+  border-color: color-mix(in srgb, var(--danger) 40%, var(--border));
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: 0.83rem;
 }
 
 .modal-card h3 {
@@ -375,6 +476,25 @@ label {
   margin-bottom: 0.4rem;
 }
 
+.toast-details {
+  margin: 0 0 0.45rem;
+  max-height: 140px;
+  overflow: auto;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  font-size: 0.82rem;
+}
+
+.toast-actions {
+  display: flex;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
 .toast button {
   min-height: 36px;
   padding: 0.2rem 0.5rem;
@@ -390,6 +510,11 @@ label {
 
 .delivery-pulse .ag-cell {
   animation: delivery-pulse 1.1s ease;
+}
+
+.delivery-mark {
+  color: var(--success);
+  font-weight: 700;
 }
 
 @keyframes delivery-pulse {
@@ -426,6 +551,11 @@ label {
 @media (max-width: 700px) {
   .action-row {
     justify-content: flex-start;
+  }
+
+  .selection-bar {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .modal-card footer {

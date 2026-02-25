@@ -21,14 +21,27 @@ import { ToastService } from '../../core/services/toast.service';
 
       <form class="auth-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
         <h2>Giriş</h2>
+        <p class="form-alert error" *ngIf="formError">{{ formError }}</p>
         <label>
           Email
-          <input type="email" formControlName="email" autocomplete="email" />
+          <input
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            [attr.aria-invalid]="!!controlError('email')"
+          />
+          <small class="field-error" *ngIf="controlError('email') as error">{{ error }}</small>
         </label>
 
         <label>
           Şifre
-          <input type="password" formControlName="password" autocomplete="current-password" />
+          <input
+            type="password"
+            formControlName="password"
+            autocomplete="current-password"
+            [attr.aria-invalid]="!!controlError('password')"
+          />
+          <small class="field-error" *ngIf="controlError('password') as error">{{ error }}</small>
         </label>
 
         <button type="submit" [disabled]="form.invalid || loading">{{ loading ? 'Bağlanıyor...' : 'Giriş Yap' }}</button>
@@ -40,6 +53,7 @@ export class LoginComponent {
   private readonly fb = inject(FormBuilder);
 
   loading = false;
+  formError = '';
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -54,25 +68,45 @@ export class LoginComponent {
 
   async submit(): Promise<void> {
     if (this.form.invalid || this.loading) {
+      this.form.markAllAsTouched();
       return;
     }
 
     this.loading = true;
+    this.formError = '';
     const raw = this.form.getRawValue();
 
     try {
       await this.authService.signIn(raw.email.trim(), raw.password);
       await this.router.navigate(['/users']);
     } catch (error: unknown) {
+      this.formError = 'Giriş doğrulanamadı. Email ve şifreyi kontrol edip tekrar dene.';
       this.toastService.push({
         kind: 'error',
         title: 'Giriş başarısız',
-        message: 'Firebase kimlik doğrulaması veya API oturumu başlatılamadı.',
-        timeoutMs: 4500
+        message: this.formError,
+        timeoutMs: 6500
       });
       console.error(error);
     } finally {
       this.loading = false;
     }
+  }
+
+  controlError(field: 'email' | 'password'): string | null {
+    const control = this.form.controls[field];
+    if (!control.touched || !control.invalid) {
+      return null;
+    }
+
+    if (control.hasError('required')) {
+      return 'Bu alan zorunludur.';
+    }
+
+    if (control.hasError('email')) {
+      return 'Geçerli bir email gir.';
+    }
+
+    return null;
   }
 }

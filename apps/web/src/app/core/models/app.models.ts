@@ -7,6 +7,14 @@ export interface SessionUser {
   roles: string[];
 }
 
+export type LoadState = 'idle' | 'loading' | 'success' | 'error';
+
+export type ConnectionState =
+  | 'connecting'
+  | 'connected'
+  | 'reconnecting'
+  | 'disconnected';
+
 export interface UserRow {
   id: string;
   userName: string;
