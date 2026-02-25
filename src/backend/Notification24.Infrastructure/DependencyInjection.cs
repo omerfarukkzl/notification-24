@@ -24,6 +24,7 @@ public static class DependencyInjection
             ?? configuration.GetConnectionString("SqlServer")
             ?? throw new InvalidOperationException("ConnectionStrings:Postgres is missing.");
 
+        connectionString = PostgresConnectionString.Normalize(connectionString);
         services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
         services

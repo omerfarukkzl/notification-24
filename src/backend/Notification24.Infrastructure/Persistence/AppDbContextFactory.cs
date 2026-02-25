@@ -24,6 +24,7 @@ public sealed class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbConte
             ?? configuration.GetConnectionString("SqlServer")
             ?? "Host=localhost;Port=5432;Database=Notification24Db;Username=postgres;Password=postgres;SSL Mode=Disable";
 
+        connectionString = PostgresConnectionString.Normalize(connectionString);
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
         optionsBuilder.UseNpgsql(connectionString);
 
