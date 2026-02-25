@@ -2,8 +2,7 @@
 
 Bu rehber, Notification-24 projesinin production kurulumu icin guncel hedefleri anlatir:
 - Frontend: Vercel (Angular)
-- API: Render Web Service
-- Worker: Render Background Worker
+- API: Render Web Service (embedded queue worker)
 - Database: Render PostgreSQL
 - Queue: CloudAMQP (RabbitMQ)
 
@@ -37,7 +36,6 @@ Bu rehber, Notification-24 projesinin production kurulumu icin guncel hedefleri 
 
 Repository root'undaki `render.yaml` dosyasi ile su servisleri yonet:
 - `notification24-api` (web)
-- `notification24-worker` (worker)
 - `notification24-postgres` (database)
 
 ### API icin zorunlu env
@@ -46,6 +44,7 @@ Repository root'undaki `render.yaml` dosyasi ile su servisleri yonet:
 - `ConnectionStrings__Postgres`
 - `Firebase__ProjectId`
 - `Firebase__ServiceAccountJson`
+- `Worker__Enabled=true`
 - `RabbitMq__HostName`
 - `RabbitMq__Port`
 - `RabbitMq__UserName`
@@ -57,16 +56,6 @@ Repository root'undaki `render.yaml` dosyasi ile su servisleri yonet:
 - `Seed__AdminFirebaseUid`
 - `Cors__AllowedOrigins__0=https://<vercel-domain>`
 - `Database__ApplyMigrationsOnStartup=false`
-
-### Worker icin zorunlu env
-- `DOTNET_ENVIRONMENT=Production`
-- `RabbitMq__HostName`
-- `RabbitMq__Port`
-- `RabbitMq__UserName`
-- `RabbitMq__Password`
-- `RabbitMq__VirtualHost`
-- `Api__BaseUrl=https://<api-domain>/`
-- `Api__InternalKey=<InternalApi__Key ile ayni>`
 
 ## 3) Migration ve Rollout
 
@@ -80,7 +69,7 @@ dotnet ef database update \
   --context AppDbContext
 ```
 2. API deploy et, `GET /` endpointini dogrula.
-3. Worker deploy et, queue consume loglarini kontrol et.
+3. Queue consume loglarini API loglari uzerinden kontrol et.
 4. Vercel'e frontend deploy et.
 5. Uc uca test et:
    - login

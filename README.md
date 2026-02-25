@@ -2,14 +2,13 @@
 
 PRD odaklı kullanıcı bildirim uygulaması:
 - Angular frontend (Ag-Grid + Firebase SDK + SignalR client)
-- .NET API (Firebase token verification + Role-based authorization)
-- .NET Worker (RabbitMQ queue consumer)
+- .NET API (Firebase token verification + Role-based authorization + embedded RabbitMQ consumer)
 - PostgreSQL (EF Core code-first)
 
 ## Repo Layout
 - `apps/web`: Angular frontend
-- `src/backend/Notification24.Api`: API + SignalR hub
-- `src/backend/Notification24.Worker`: RabbitMQ consumer worker
+- `src/backend/Notification24.Api`: API + SignalR hub + embedded queue worker
+- `src/backend/Notification24.Worker`: standalone worker (opsiyonel/fallback)
 - `src/backend/Notification24.Infrastructure`: EF Core, Identity tables, Firebase Admin integration
 - `infra/docker/docker-compose.local.yml`: local PostgreSQL + RabbitMQ
 
@@ -65,12 +64,11 @@ pnpm install
 DOTNET_CLI_HOME=/tmp/dotnet NUGET_PACKAGES=/tmp/nuget dotnet restore Notification24.slnx
 ```
 
-4. API ve Worker çalıştır:
+4. API çalıştır:
 ```bash
 DOTNET_CLI_HOME=/tmp/dotnet dotnet run --project src/backend/Notification24.Api/Notification24.Api.csproj
-DOTNET_CLI_HOME=/tmp/dotnet dotnet run --project src/backend/Notification24.Worker/Notification24.Worker.csproj
 ```
-- API/Worker startup sırasında root `.env` otomatik yüklenir.
+- API startup sırasında root `.env` otomatik yüklenir.
 
 5. Frontend çalıştır:
 ```bash
@@ -90,12 +88,12 @@ DOTNET_ROLL_FORWARD=Major DOTNET_CLI_HOME=/tmp/dotnet NUGET_PACKAGES=/tmp/nuget 
 
 ## Deployment
 - Frontend: Vercel
-- API/Worker: Render
+- API (embedded worker): Render
 - DB: Render PostgreSQL
 - Queue: CloudAMQP
 
 Notlar:
 - Backend target framework: `net10.0`
-- Production appsettings: `src/backend/Notification24.Api/appsettings.Production.json`, `src/backend/Notification24.Worker/appsettings.Production.json`
+- Production appsettings: `src/backend/Notification24.Api/appsettings.Production.json`
 
 Detay: `infra/deploy/README.md`.

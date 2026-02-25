@@ -6,8 +6,7 @@
 
 ## Target
 - Frontend: Vercel
-- API: Render Web Service
-- Worker: Render Background Worker
+- API: Render Web Service (embedded queue worker)
 - Database: Render PostgreSQL
 - Queue: CloudAMQP free plan
 
@@ -25,6 +24,7 @@
 - `ConnectionStrings__Postgres`
 - `Firebase__ProjectId`
 - `Firebase__ServiceAccountJson` (recommended)
+- `Worker__Enabled=true`
 - `RabbitMq__HostName`
 - `RabbitMq__Port`
 - `RabbitMq__UserName`
@@ -37,19 +37,8 @@
 - `Cors__AllowedOrigins__0=https://<your-vercel-domain>`
 - `Database__ApplyMigrationsOnStartup=false`
 
-### Worker App Settings
-- `DOTNET_ENVIRONMENT=Production`
-- `RabbitMq__HostName`
-- `RabbitMq__Port`
-- `RabbitMq__UserName`
-- `RabbitMq__Password`
-- `RabbitMq__VirtualHost`
-- `Api__BaseUrl=https://<api-domain>/`
-- `Api__InternalKey=<same-key-as-api/InternalApi__Key>`
-
 ## Production Config Files
 - API defaults: `src/backend/Notification24.Api/appsettings.Production.json`
-- Worker defaults: `src/backend/Notification24.Worker/appsettings.Production.json`
 - Environment template: `infra/deploy/.env.production.example`
 - Render blueprint: `render.yaml`
 - Replace all `replace-with-*` placeholders before first production release.
@@ -57,8 +46,7 @@
 ## Rollout Checklist
 1. Create Render PostgreSQL and map `ConnectionStrings__Postgres`.
 2. Deploy API with all production app settings.
-3. Deploy Worker with RabbitMQ + API internal key settings.
-4. Validate API root endpoint: `GET /`.
-5. Run schema migration in a controlled step, then keep `Database__ApplyMigrationsOnStartup=false`.
-6. Deploy Web on Vercel with `WEB_*` variables.
-7. Validate login, dispatch, inbox/tracking and SignalR live updates end-to-end.
+3. Validate API root endpoint: `GET /`.
+4. Run schema migration in a controlled step, then keep `Database__ApplyMigrationsOnStartup=false`.
+5. Deploy Web on Vercel with `WEB_*` variables.
+6. Validate login, dispatch, inbox/tracking and SignalR live updates end-to-end.

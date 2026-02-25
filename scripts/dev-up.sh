@@ -4,8 +4,7 @@ set -euo pipefail
 # Tek komutla local gelistirme ortamini kaldirir:
 # 1) Docker infra (PostgreSQL + RabbitMQ)
 # 2) API
-# 3) Worker
-# 4) Angular web
+# 3) Angular web
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUN_DIR="$ROOT_DIR/.local/run"
@@ -14,11 +13,9 @@ LOG_DIR="$ROOT_DIR/.local/logs"
 mkdir -p "$RUN_DIR" "$LOG_DIR"
 
 API_PID_FILE="$RUN_DIR/api.pid"
-WORKER_PID_FILE="$RUN_DIR/worker.pid"
 WEB_PID_FILE="$RUN_DIR/web.pid"
 
 API_LOG="$LOG_DIR/api.log"
-WORKER_LOG="$LOG_DIR/worker.log"
 WEB_LOG="$LOG_DIR/web.log"
 
 log() {
@@ -88,21 +85,6 @@ wait_for_http() {
   done
 
   fail "$service_name $url adresinde hazir olmadi. Log: $LOG_DIR"
-}
-
-wait_for_process_alive() {
-  local pid="$1"
-  local service_name="$2"
-  local timeout_seconds="${3:-20}"
-  local elapsed=0
-
-  while (( elapsed < timeout_seconds )); do
-    if ! kill -0 "$pid" 2>/dev/null; then
-      fail "$service_name erken kapandi. Log: $LOG_DIR"
-    fi
-    sleep 1
-    elapsed=$((elapsed + 1))
-  done
 }
 
 update_pid_from_port() {
@@ -306,7 +288,6 @@ main() {
   check_firebase_admin_credentials
 
   ensure_not_running "API" "$API_PID_FILE"
-  ensure_not_running "Worker" "$WORKER_PID_FILE"
   ensure_not_running "Web" "$WEB_PID_FILE"
 
   ensure_port_available "5050" "API"
@@ -393,15 +374,6 @@ main() {
   wait_for_http "http://localhost:5050/" "API" 90 "$(cat "$API_PID_FILE")"
   update_pid_from_port "5050" "$API_PID_FILE" "API"
   log "API ayaga kalkti -> http://localhost:5050"
-
-  log "Worker baslatiliyor..."
-  (
-    cd "$ROOT_DIR"
-    dotnet run --no-launch-profile --project src/backend/Notification24.Worker/Notification24.Worker.csproj
-  ) >"$WORKER_LOG" 2>&1 &
-  echo "$!" >"$WORKER_PID_FILE"
-  wait_for_process_alive "$(cat "$WORKER_PID_FILE")" "Worker" 8
-  log "Worker ayaga kalkti."
 
   log "Frontend baslatiliyor..."
   (

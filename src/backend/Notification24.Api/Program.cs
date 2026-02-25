@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Notification24.Api.Hubs;
+using Notification24.Api.Services;
 using Notification24.Api.Seeding;
 using Notification24.Infrastructure;
 using Notification24.Infrastructure.Configuration;
@@ -16,11 +17,16 @@ TryLoadDotEnv();
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHttpClient("api");
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+if (builder.Configuration.GetValue("Worker:Enabled", true))
+{
+    builder.Services.AddHostedService<NotificationDispatchWorker>();
+}
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()?.ToList() 
     ?? new List<string> { "http://localhost:4200" };

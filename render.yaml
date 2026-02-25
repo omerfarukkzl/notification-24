@@ -17,6 +17,8 @@ services:
           property: connectionString
       - key: Database__ApplyMigrationsOnStartup
         value: "false"
+      - key: Worker__Enabled
+        value: "true"
       - key: Firebase__ProjectId
         sync: false
       - key: Firebase__ServiceAccountJson
@@ -30,30 +32,6 @@ services:
       - key: Seed__AdminFirebaseUid
         sync: false
       - key: Cors__AllowedOrigins__0
-        sync: false
-      - key: RabbitMq__HostName
-        sync: false
-      - key: RabbitMq__Port
-        value: "5672"
-      - key: RabbitMq__UserName
-        sync: false
-      - key: RabbitMq__Password
-        sync: false
-      - key: RabbitMq__VirtualHost
-        sync: false
-
-  - type: worker
-    name: notification24-worker
-    env: docker
-    plan: free
-    autoDeploy: true
-    dockerfilePath: ./Dockerfile.worker
-    envVars:
-      - key: DOTNET_ENVIRONMENT
-        value: Production
-      - key: Api__BaseUrl
-        value: https://notification24-api.onrender.com/
-      - key: Api__InternalKey
         sync: false
       - key: RabbitMq__HostName
         sync: false
