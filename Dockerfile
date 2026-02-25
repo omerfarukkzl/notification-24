@@ -31,6 +31,5 @@ COPY --from=build /app/publish .
 
 # Expose port (Render uses PORT env var, but 8080/80 is standard)
 EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
 
 ENTRYPOINT ["dotnet", "Notification24.Api.dll"]

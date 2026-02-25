@@ -13,6 +13,7 @@ using Notification24.Infrastructure.Identity;
 using Notification24.Infrastructure.Persistence;
 
 TryLoadDotEnv();
+TryConfigureAspNetCoreUrlsFromPort();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -187,4 +188,25 @@ static void TryLoadDotEnv()
     catch (Exception)
     {
     }
+}
+
+static void TryConfigureAspNetCoreUrlsFromPort()
+{
+    if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")))
+    {
+        return;
+    }
+
+    var port = Environment.GetEnvironmentVariable("PORT");
+    if (string.IsNullOrWhiteSpace(port))
+    {
+        return;
+    }
+
+    if (!int.TryParse(port, out _))
+    {
+        return;
+    }
+
+    Environment.SetEnvironmentVariable("ASPNETCORE_URLS", $"http://+:{port}");
 }
