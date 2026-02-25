@@ -4,14 +4,14 @@ PRD odaklı kullanıcı bildirim uygulaması:
 - Angular frontend (Ag-Grid + Firebase SDK + SignalR client)
 - .NET API (Firebase token verification + Role-based authorization)
 - .NET Worker (RabbitMQ queue consumer)
-- SQL Server (EF Core code-first)
+- PostgreSQL (EF Core code-first)
 
 ## Repo Layout
 - `apps/web`: Angular frontend
 - `src/backend/Notification24.Api`: API + SignalR hub
 - `src/backend/Notification24.Worker`: RabbitMQ consumer worker
 - `src/backend/Notification24.Infrastructure`: EF Core, Identity tables, Firebase Admin integration
-- `infra/docker/docker-compose.local.yml`: local SQL Server + RabbitMQ
+- `infra/docker/docker-compose.local.yml`: local PostgreSQL + RabbitMQ
 
 ## Firebase Auth Model
 - Frontend login `firebase/auth` SDK ile yapılır.
@@ -26,7 +26,7 @@ PRD odaklı kullanıcı bildirim uygulaması:
 cp .env.example .env
 ```
 
-2. Gerekli alanlari doldur (`Firebase__ProjectId`, `Firebase__ServiceAccountJsonPath`/`Firebase__ServiceAccountJson`, `Seed__AdminFirebaseUid`, `WEB_FIREBASE_*`).
+2. Gerekli alanlari doldur (`ConnectionStrings__Postgres`, `Firebase__ProjectId`, `Firebase__ServiceAccountJsonPath`/`Firebase__ServiceAccountJson`, `Seed__AdminFirebaseUid`, `WEB_FIREBASE_*`).
 
 3. Tum stack'i baslat:
 ```bash
@@ -48,6 +48,7 @@ pnpm dev:down
 cp .env.example .env
 ```
 - Gerekli değerleri güncelle:
+  - `ConnectionStrings__Postgres`
   - `Firebase__ProjectId`
   - `Firebase__ServiceAccountJsonPath` veya `Firebase__ServiceAccountJson`
   - `Seed__AdminFirebaseUid`
@@ -89,8 +90,8 @@ DOTNET_ROLL_FORWARD=Major DOTNET_CLI_HOME=/tmp/dotnet NUGET_PACKAGES=/tmp/nuget 
 
 ## Deployment
 - Frontend: Vercel
-- API/Worker: Azure App Service (Render alternatif)
-- DB: Azure SQL
+- API/Worker: Render
+- DB: Render PostgreSQL
 - Queue: CloudAMQP
 
 Notlar:

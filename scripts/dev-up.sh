@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Tek komutla local gelistirme ortamini kaldirir:
-# 1) Docker infra (SQL Server + RabbitMQ)
+# 1) Docker infra (PostgreSQL + RabbitMQ)
 # 2) API
 # 3) Worker
 # 4) Angular web
@@ -147,7 +147,7 @@ extract_conn_string_value() {
   return 1
 }
 
-wait_for_sql_health() {
+wait_for_db_health() {
   local container_name="$1"
   local timeout_seconds="${2:-120}"
   local elapsed=0
@@ -164,20 +164,25 @@ wait_for_sql_health() {
     elapsed=$((elapsed + 2))
   done
 
-  fail "SQL Server health check timeout. Container: $container_name"
+  fail "PostgreSQL health check timeout. Container: $container_name"
 }
 
 ensure_database_exists() {
   local container_name="$1"
   local database_name="$2"
-  local sa_password="$3"
+  local database_user="$3"
+  local database_password="$4"
 
-  docker exec "$container_name" /opt/mssql-tools18/bin/sqlcmd \
-    -S localhost \
-    -U sa \
-    -P "$sa_password" \
-    -C \
-    -Q "IF DB_ID(N'$database_name') IS NULL BEGIN CREATE DATABASE [$database_name]; END;" >/dev/null
+  local db_exists
+  db_exists="$(docker exec -e PGPASSWORD="$database_password" "$container_name" \
+    psql -U "$database_user" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$database_name';" 2>/dev/null || true)"
+
+  if [[ "$db_exists" == "1" ]]; then
+    return 0
+  fi
+
+  docker exec -e PGPASSWORD="$database_password" "$container_name" \
+    createdb -U "$database_user" "$database_name" >/dev/null
 }
 
 run_pnpm() {
@@ -313,32 +318,59 @@ main() {
   export DOTNET_ENVIRONMENT="${DOTNET_ENVIRONMENT:-Development}"
   export ASPNETCORE_URLS="${ASPNETCORE_URLS:-http://localhost:5050}"
   export Api__BaseUrl="${Api__BaseUrl:-http://localhost:5050/}"
-  export ConnectionStrings__SqlServer="${ConnectionStrings__SqlServer:-Server=localhost,1433;Database=Notification24Db;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;Encrypt=False}"
+  if [[ -z "${ConnectionStrings__Postgres:-}" && -n "${ConnectionStrings__SqlServer:-}" ]]; then
+    if [[ "$ConnectionStrings__SqlServer" == *"Host="* ]]; then
+      export ConnectionStrings__Postgres="$ConnectionStrings__SqlServer"
+    else
+      log "UYARI: ConnectionStrings__SqlServer SQL Server formatinda gorunuyor. Otomatik Postgres map atlandi."
+    fi
+  fi
 
-  log "Infra baslatiliyor (SQL Server + RabbitMQ)..."
+  export ConnectionStrings__Postgres="${ConnectionStrings__Postgres:-Host=localhost;Port=5432;Database=Notification24Db;Username=postgres;Password=postgres;SSL Mode=Disable}"
+
+  log "Infra baslatiliyor (PostgreSQL + RabbitMQ)..."
   docker compose -f infra/docker/docker-compose.local.yml up -d >/dev/null
 
-  log "SQL Server health bekleniyor..."
-  wait_for_sql_health "notification24-sql" 120
+  log "PostgreSQL health bekleniyor..."
+  wait_for_db_health "notification24-postgres" 120
 
   local db_name="Notification24Db"
-  local db_password="YourStrong!Passw0rd"
+  local db_user="postgres"
+  local db_password="postgres"
+  local db_host="localhost"
+  local db_port="5432"
 
-  if extracted_db_name="$(extract_conn_string_value "$ConnectionStrings__SqlServer" "Database")"; then
-    db_name="$extracted_db_name"
-  elif extracted_db_name="$(extract_conn_string_value "$ConnectionStrings__SqlServer" "Initial Catalog")"; then
+  if extracted_db_name="$(extract_conn_string_value "$ConnectionStrings__Postgres" "Database")"; then
     db_name="$extracted_db_name"
   fi
 
-  if extracted_password="$(extract_conn_string_value "$ConnectionStrings__SqlServer" "Password")"; then
-    db_password="$extracted_password"
-  elif extracted_password="$(extract_conn_string_value "$ConnectionStrings__SqlServer" "Pwd")"; then
+  if extracted_user="$(extract_conn_string_value "$ConnectionStrings__Postgres" "Username")"; then
+    db_user="$extracted_user"
+  elif extracted_user="$(extract_conn_string_value "$ConnectionStrings__Postgres" "User Id")"; then
+    db_user="$extracted_user"
+  fi
+
+  if extracted_password="$(extract_conn_string_value "$ConnectionStrings__Postgres" "Password")"; then
     db_password="$extracted_password"
   fi
 
-  log "Veritabani kontrol ediliyor ($db_name)..."
-  ensure_database_exists "notification24-sql" "$db_name" "$db_password"
-  log "Veritabani hazir: $db_name"
+  if extracted_host="$(extract_conn_string_value "$ConnectionStrings__Postgres" "Host")"; then
+    db_host="$extracted_host"
+  elif extracted_host="$(extract_conn_string_value "$ConnectionStrings__Postgres" "Server")"; then
+    db_host="$extracted_host"
+  fi
+
+  if extracted_port="$(extract_conn_string_value "$ConnectionStrings__Postgres" "Port")"; then
+    db_port="$extracted_port"
+  fi
+
+  if [[ "$db_host" != "localhost" && "$db_host" != "127.0.0.1" && "$db_host" != "notification24-postgres" ]]; then
+    log "UYARI: ConnectionStrings__Postgres local host gostermiyor (Host=$db_host). Local DB olusturma atlandi."
+  else
+    log "Veritabani kontrol ediliyor ($db_name @ $db_host:$db_port, user=$db_user)..."
+    ensure_database_exists "notification24-postgres" "$db_name" "$db_user" "$db_password"
+    log "Veritabani hazir: $db_name"
+  fi
 
   log "Node paketleri kontrol ediliyor..."
   run_pnpm install >/dev/null

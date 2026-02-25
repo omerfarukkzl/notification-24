@@ -1,101 +1,96 @@
-# 🚀 Notification-24 Deployment Guide
+# Notification-24 Deployment Guide (Render + Vercel)
 
-Bu rehber, Notification-24 projesinin backend (.NET 10) ve frontend (Next.js) bileşenlerinin canlıya (production) alınması için gereken adımları içerir.
+Bu rehber, Notification-24 projesinin production kurulumu icin guncel hedefleri anlatir:
+- Frontend: Vercel (Angular)
+- API: Render Web Service
+- Worker: Render Background Worker
+- Database: Render PostgreSQL
+- Queue: CloudAMQP (RabbitMQ)
 
-## 📋 Gereksinimler
-- **Backend**: .NET 10 Runtime
-- **Frontend**: Node.js 20+ & pnpm 9+
-- **Database**: Azure SQL (veya PostgreSQL destekli bir SQL Server)
-- **Message Broker**: CloudAMQP (RabbitMQ)
-- **Auth & Push**: Firebase Account
+## 1) Altyapi Hazirligi
 
----
+### PostgreSQL (Render)
+1. Render'da yeni bir PostgreSQL instance olustur.
+2. Connection string bilgisini al.
+3. API env'de `ConnectionStrings__Postgres` olarak kullan.
 
-## 🏗️ Adım 1: Altyapı Hazırlığı
+### RabbitMQ (CloudAMQP)
+1. CloudAMQP instance olustur.
+2. Su degerleri not al:
+   - `RabbitMq__HostName`
+   - `RabbitMq__Port`
+   - `RabbitMq__UserName`
+   - `RabbitMq__Password`
+   - `RabbitMq__VirtualHost`
 
-### 1. Database Setup
-- Azure SQL üzerinde bir veritabanı oluşturun.
-- Connection string'i hazırda tutun. Örn: `Server=tcp:yourserver.database.windows.net,1433;Initial Catalog=Notification24Db;...`
+### Firebase
+1. `Firebase__ProjectId` degerini hazirla.
+2. Service account JSON'u tek satir halinde secret olarak tut:
+   - `Firebase__ServiceAccountJson`
+3. Web app config degerlerini Vercel'e gir:
+   - `WEB_FIREBASE_API_KEY`
+   - `WEB_FIREBASE_AUTH_DOMAIN`
+   - `WEB_FIREBASE_PROJECT_ID`
+   - `WEB_FIREBASE_APP_ID`
 
-### 2. Message Broker (RabbitMQ) Setup
-- [CloudAMQP](https://www.cloudamqp.com/) üzerinden free bir plan (Lemur) oluşturun.
-- Hostname, Username, Password ve VirtualHost bilgilerini not edin.
+## 2) Render Servisleri
 
-### 3. Firebase Setup
-- Firebase Console'dan yeni bir proje oluşturun.
-- **Service Account**: Project Settings > Service Accounts kısmından yeni bir JSON anahtarı oluşturun. Bu JSON içeriğini API ayarlarında kullanacağız.
-- **Web App**: Web uygulaması ekleyip Firebase config bilgilerini (ApiKey, AuthDomain, vb.) alın.
+Repository root'undaki `render.yaml` dosyasi ile su servisleri yonet:
+- `notification24-api` (web)
+- `notification24-worker` (worker)
+- `notification24-postgres` (database)
 
----
+### API icin zorunlu env
+- `ASPNETCORE_ENVIRONMENT=Production`
+- `DOTNET_ENVIRONMENT=Production`
+- `ConnectionStrings__Postgres`
+- `Firebase__ProjectId`
+- `Firebase__ServiceAccountJson`
+- `RabbitMq__HostName`
+- `RabbitMq__Port`
+- `RabbitMq__UserName`
+- `RabbitMq__Password`
+- `RabbitMq__VirtualHost`
+- `InternalApi__Key`
+- `Seed__AdminUserName`
+- `Seed__AdminEmail`
+- `Seed__AdminFirebaseUid`
+- `Cors__AllowedOrigins__0=https://<vercel-domain>`
+- `Database__ApplyMigrationsOnStartup=false`
 
-## ⚙️ Adım 2: API & Worker Deployment (Backend)
+### Worker icin zorunlu env
+- `DOTNET_ENVIRONMENT=Production`
+- `RabbitMq__HostName`
+- `RabbitMq__Port`
+- `RabbitMq__UserName`
+- `RabbitMq__Password`
+- `RabbitMq__VirtualHost`
+- `Api__BaseUrl=https://<api-domain>/`
+- `Api__InternalKey=<InternalApi__Key ile ayni>`
 
-Backend uygulamaları (.NET 10) için Azure App Service (Windows) kurulumu görünüyor. İşte portal üzerinden yapmanız gerekenler:
+## 3) Migration ve Rollout
 
-### 1. Azure Portal'da Ortam Değişkenleri (Environment Variables)
-Azure Portal'da sol menüden **Settings > Environment variables** kısmına gidin ve **App settings** sekmesinde aşağıdaki değerleri "Add" diyerek ekleyin:
-
-| Key | Value / Açıklama |
-| :--- | :--- |
-| `ASPNETCORE_ENVIRONMENT` | `Production` |
-| `ConnectionStrings__SqlServer` | Veritabanı bağlantı cümlesi |
-| `Firebase__ProjectId` | Firebase Project ID |
-| `Firebase__ServiceAccountJson` | Firebase Service Account JSON içeriği (tek satırda) |
-| `RabbitMq__HostName` | RabbitMQ Host |
-| `RabbitMq__UserName` | RabbitMQ Username |
-| `RabbitMq__Password` | RabbitMQ Password |
-| `RabbitMq__VirtualHost` | RabbitMQ VirtualHost |
-| `InternalApi__Key` | API/Worker şifresi |
-| `PROJECT` | `src/backend/Notification24.Api/Notification24.Api.csproj` (Azure'ın hangi projeyi build edeceğini bilmesi için) |
-
-> [!TIP]
-> **Windows** tabanlı App Service'lerde `__` (çift alt çizgi) hiyerarşik ayarlar için kullanılır (örn: `ConnectionStrings:SqlServer` yerine `ConnectionStrings__SqlServer`).
-
-### 2. GitHub Actions Yapılandırması (ÖNEMLİ)
-Ekran görüntüsünde GitHub bağlantısı yapılmış görünüyor. Mevcut `.github/workflows/main_notification-24.yml` dosyanızda şu değişiklikleri yapmanız, monorepo yapısında build hatalarını önleyecektir:
-
-`main_notification-24.yml` dosyasındaki build ve publish adımlarını şu şekilde güncelleyin:
-
-```yaml
-      - name: Build with dotnet
-        run: dotnet build src/backend/Notification24.Api/Notification24.Api.csproj --configuration Release
-
-      - name: dotnet publish
-        run: dotnet publish src/backend/Notification24.Api/Notification24.Api.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+1. Ilk deploydan once PostgreSQL migration uygula:
+```bash
+DOTNET_ROLL_FORWARD=Major \
+DOTNET_CLI_HOME=/tmp/dotnet \
+NUGET_PACKAGES=/tmp/nuget \
+dotnet ef database update \
+  --project src/backend/Notification24.Infrastructure/Notification24.Infrastructure.csproj \
+  --context AppDbContext
 ```
+2. API deploy et, `GET /` endpointini dogrula.
+3. Worker deploy et, queue consume loglarini kontrol et.
+4. Vercel'e frontend deploy et.
+5. Uc uca test et:
+   - login
+   - user list
+   - dispatch
+   - inbox/tracking
+   - SignalR live updates
 
-> [!IMPORTANT]
-> Eğer bu değişikliği yapmazsanız, Azure tüm projeleri aynı klasöre basmaya çalışabilir ve uygulama çalışmayabilir. Sadece `Notification24.Api` projesini publish etmek en sağlıklı yöntemdir.
+## 4) Guvenlik Notlari
 
----
-
-## 💻 Adım 3: Web Deployment (Frontend)
-
-Frontend uygulaması için **Vercel** en iyi tercihtir.
-
-### 1. Vercel Proje Ayarları (GÜNCEL)
-Vercel'in monorepo yapısını otomatik algılaması bazen hatalı build komutları (`nx build`) üretmesine neden olur. Hataları düzeltmek için Vercel Dashboard'da **Settings > General** kısmında şu ayarları yapın:
-
-- **Framework Preset**: `Angular`
-- **Root Directory**: `apps/web`
-- **Build Command**: `pnpm build`
-- **Output Directory**: `dist/notification24-web/browser`
-- **Install Command**: `pnpm install`
-
-### 2. Ortam Değişkenleri (Vercel)
-**Settings > Environment Variables** kısmında `WEB_` ön eki ile başlayan tüm değişkenleri girdiğinizden emin olun (Firebase Key, API URL vb.).
-
-> [!TIP]
-> Vercel build sırasında "Nx not found" hatası alıyorsanız, yukarıdaki **Build Command** ayarını manuel olarak `pnpm build` (Override seçeneği aktif) şeklinde kaydederek Vercel'in Nx kullanmaya çalışmasını engelleyebilirsiniz.
-
----
-
-## ✅ Son Kontrol Listesi
-
-1. [ ] API root endpoint çalışıyor mu?
-2. [ ] Worker loglarında RabbitMQ bağlantı hatası var mı?
-3. [ ] Web arayüzünde login olunabiliyor mu?
-4. [ ] Bildirimler SignalR üzerinden canlı akıyor mu?
-
-> [!IMPORTANT]
-> Tüm gizli bilgileri (Secret) platformların kendi Vault/Secret Manager sistemlerinde saklayın. `.env` dosyalarını asla repo'ya açık halde pushlamayın.
+- Tum secret'lari platform secret manager'da tut.
+- `.env` dosyalarini repoya commit etme.
+- `InternalApi__Key` guclu ve rastgele olmalidir.

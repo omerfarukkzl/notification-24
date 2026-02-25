@@ -6,9 +6,9 @@
 
 ## Target
 - Frontend: Vercel
-- API: Azure App Service (or Render fallback)
-- Worker: Azure WebJob / Render background worker
-- Database: Azure SQL
+- API: Render Web Service
+- Worker: Render Background Worker
+- Database: Render PostgreSQL
 - Queue: CloudAMQP free plan
 
 ## Secret Inventory
@@ -22,7 +22,7 @@
 ### API App Settings
 - `ASPNETCORE_ENVIRONMENT=Production`
 - `DOTNET_ENVIRONMENT=Production`
-- `ConnectionStrings__SqlServer`
+- `ConnectionStrings__Postgres`
 - `Firebase__ProjectId`
 - `Firebase__ServiceAccountJson` (recommended)
 - `RabbitMq__HostName`
@@ -51,12 +51,14 @@
 - API defaults: `src/backend/Notification24.Api/appsettings.Production.json`
 - Worker defaults: `src/backend/Notification24.Worker/appsettings.Production.json`
 - Environment template: `infra/deploy/.env.production.example`
+- Render blueprint: `render.yaml`
 - Replace all `replace-with-*` placeholders before first production release.
 
 ## Rollout Checklist
-1. Deploy API with all production app settings.
-2. Validate API root endpoint: `GET /`.
-3. Run schema migration in a controlled step, then keep `Database__ApplyMigrationsOnStartup=false`.
-4. Deploy Worker and verify queue consume + `api/notifications/internal/deliver` flow.
-5. Deploy Web on Vercel with `WEB_*` variables.
-6. Validate login, dispatch, inbox/tracking and SignalR live updates end-to-end.
+1. Create Render PostgreSQL and map `ConnectionStrings__Postgres`.
+2. Deploy API with all production app settings.
+3. Deploy Worker with RabbitMQ + API internal key settings.
+4. Validate API root endpoint: `GET /`.
+5. Run schema migration in a controlled step, then keep `Database__ApplyMigrationsOnStartup=false`.
+6. Deploy Web on Vercel with `WEB_*` variables.
+7. Validate login, dispatch, inbox/tracking and SignalR live updates end-to-end.

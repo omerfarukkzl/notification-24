@@ -20,10 +20,11 @@ public static class DependencyInjection
         services.Configure<FirebaseOptions>(configuration.GetSection(FirebaseOptions.SectionName));
         services.Configure<RabbitMqOptions>(configuration.GetSection(RabbitMqOptions.SectionName));
 
-        var connectionString = configuration.GetConnectionString("SqlServer")
-            ?? throw new InvalidOperationException("ConnectionStrings:SqlServer is missing.");
+        var connectionString = configuration.GetConnectionString("Postgres")
+            ?? configuration.GetConnectionString("SqlServer")
+            ?? throw new InvalidOperationException("ConnectionStrings:Postgres is missing.");
 
-        services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
         services
             .AddIdentityCore<AppUser>(options =>

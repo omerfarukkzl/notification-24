@@ -20,11 +20,12 @@ public sealed class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbConte
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("SqlServer")
-            ?? "Server=localhost,1433;Database=Notification24Db;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;Encrypt=False";
+        var connectionString = configuration.GetConnectionString("Postgres")
+            ?? configuration.GetConnectionString("SqlServer")
+            ?? "Host=localhost;Port=5432;Database=Notification24Db;Username=postgres;Password=postgres;SSL Mode=Disable";
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        optionsBuilder.UseSqlServer(connectionString);
+        optionsBuilder.UseNpgsql(connectionString);
 
         return new AppDbContext(optionsBuilder.Options);
     }
